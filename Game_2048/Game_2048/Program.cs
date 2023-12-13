@@ -1,6 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.ExceptionServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Schema;
@@ -9,23 +12,32 @@ namespace Game_2048
 {
     internal class Program
     {
+        //We initialise the random and other variables we're going to use in the program
+        static Random random = new Random();
+
+        static int score = 0;
+
+        const int row = 4;
+        const int col = 4;
+        static int[,] grid = new int[row, col];
+        static int[,] gridBuffer = new int[row, col];
+
         static void Main(string[] args)
         {
-            
-            GenerateNumber(grid);
-            GenerateNumber(grid);
-            AfficherTableau();
+            //First, we generate two numbers in the table and we print it
+            for(int i = 0; i < 2; i++)
+            {
+                GenerateNumber(grid);
+            }
 
             bool reference = true;
 
             while (reference)
             {
-
                 ConsoleKeyInfo keyInfo = Console.ReadKey(true);
                 ConsoleKey key = keyInfo.Key;
-
+                
                 //We use a switch to detect which key the user pressed and move the tiles accordingly
-
                 switch (key)
                 {
                     case ConsoleKey.UpArrow:
@@ -53,24 +65,13 @@ namespace Game_2048
                         break;
                 }
                 GenerateNumber(grid);
-                AfficherTableau();
+                
             }
             Console.ReadKey();
         }
 
-        //We initialise the user's score
-
-        static int score = 0;
-
-        //We initiate the table
-
-        const int row = 4;
-        const int col = 4;
-        static int[,] grid = new int[row, col];
-
         //We use this function to print the table
-
-        static void AfficherTableau()
+        static void PrintTable()
         {
             Console.Clear();
             //Affiche le nom du jeu
@@ -85,20 +86,17 @@ namespace Game_2048
 
                 Console.WriteLine();
                 Console.WriteLine();
-
             }
-
+            Console.WriteLine("score: {0}", score);
         }
 
         //We use this function to generate a random number and put it in the grid
-
         static void GenerateNumber(int[,] table)
         {
             int size = table.GetLength(0);
 
             //We first get the coordinates of the enmpty tiles in the table
             List<Tuple<int, int>> emptyTiles = new List<Tuple<int, int>>();
-
             for (int x = 0; x < size; x++)
             {
                 for (int y = 0; y < size; y++)
@@ -113,140 +111,132 @@ namespace Game_2048
             //If there are empty tiles, we generate either a 2 or a 4 and place it in a random tile
             if (emptyTiles.Count > 0)
             {
-                Random random = new Random();
                 int randomIndex = random.Next(emptyTiles.Count);
                 Tuple<int, int> randomEmptyTile = emptyTiles[randomIndex];
                 int newValue = (random.Next(10) == 0) ? 4 : 2;
                 table[randomEmptyTile.Item1, randomEmptyTile.Item2] = newValue;
             }
+            PrintTable();
         }
 
-        //We use this function to move the tiles UP
+        //We use this function to change the order in a linear array of 4 (one line of the game)
+        //This function also merges the tiles after having moved them
+        static int[] changeOrder(int nb0, int nb1, int nb2, int nb3)
+        {
+            //This is to move the tiles
+            if(nb2 == 0 && nb3 > 0)
+            {
+                nb2 = nb3;
+                nb3 = 0;
+            }
+
+            if(nb1 == 0 && nb2 > 0)
+            {
+                nb1 = nb2;
+                nb2 = nb3;
+                nb3 = 0;
+            }
+
+            if(nb0 == 0 && nb1 > 0)
+            {
+                nb0 = nb1;
+                nb1 = nb2;
+                nb2 = nb3;
+                nb3 = 0;
+            }
+
+            //This is to merge the tiles
+            if(nb0 == nb1)
+            {
+                nb0 += nb1;
+                nb1 = nb2;
+                nb2 = nb3;
+                nb3 = 0;
+                score += nb0;
+            }
+
+            if(nb1 == nb2)
+            {
+                nb1 += nb2;
+                nb2 = nb3;
+                nb3 = 0;
+                score += nb1;
+            }
+
+            if(nb2 == nb3)
+            {
+                nb2 += nb3;
+                nb3 = 0;
+                score += nb2;
+            }
+
+            int[] ordre = { nb0, nb1, nb2, nb3 };
+            return ordre;
+        }
+
+        //We use this function to move UP
         static void MoveUp(int[,] table)
         {
-            int size = table.GetLength(0);
-
-            for (int y = 0; y < size; y++)
+            for(int y = 0; y < grid.GetLength(0); y++)
             {
-                for (int x = 1; x < size; x++)
-                {
-                    if (table[x, y] != 0)
-                    {
-                        int row = x;
+                int[] column = changeOrder(table[0, y], table[1, y], table[2, y], table[3, y]);
 
-                        //We check if we have space in the tile upwards to move
-                        //Or if the tile upwards is the same to make the fusion
-                        while (row > 0 && (table[row - 1, y] == 0 || (table[row - 1, y] == table[row, y] && table[row, y] != 0)))
-                        {
-                            //If we have space upwards
-                            if (table[row - 1, y] == 0)
-                            {
-                                table[row - 1, y] = table[row, y];
-                                table[row, y] = 0;
-                                row--;
-                            }
-                            //If there is tile to make the fusion
-                            else if (table[row - 1, y] == table[row, y])
-                            {
-                                table[row - 1, y] *= 2;
-                                table[row, y] = 0;
-                                //We increment the score according to the tile the user fused
-                                score += table[row - 1, y];
-                                break;
-                            }
-                        }
-                    }
+                for(int i = 0; i < column.Length; i++)
+                {
+                    gridBuffer[i, y] = column[i];
                 }
             }
+            Array.Copy(gridBuffer, grid, grid.Length);
         }
 
-        //We use this function to move the tiles DOWN
+        //we use this function to move DOWN
         static void MoveDown(int[,] table)
         {
-            int size = table.GetLength(0);
-
-            for (int y = 0; y < size; y++)
+            for(int y = 0; y < grid.GetLength(0); y++)
             {
-                for (int x = size - 2; x >= 0; x--)
-                {
-                    if (table[x, y] != 0)
-                    {
-                        int row = x;
+                int[] column = changeOrder(table[3, y], table[2, y], table[1, y], table[0, y]);
+                int index = 0;
 
-                        //We check if we have space in the tile underneath to move
-                        //Or if the tile underneath is the same to make the fusion
-                        while (row < size - 1 && (table[row + 1, y] == 0 || (table[row + 1, y] == table[row, y] && table[row, y] != 0)))
-                        {
-                            //If we have space underneath
-                            if (table[row + 1, y] == 0)
-                            {
-                                table[row + 1, y] = table[row, y];
-                                table[row, y] = 0;
-                                row++;
-                            }
-                            //If there is a tile to make tu fusion
-                            else if (table[row + 1, y] == table[row, y])
-                            {
-                                table[row + 1, y] *= 2;
-                                table[row, y] = 0;
-                                // We increment the score according to the tile the user fused
-                                score += table[row + 1, y];
-                                break;
-                            }
-                        }
-                    }
+                for (int i = column.Length - 1 ; i >= 0; i--)
+                {
+                    gridBuffer[i, y] = column[index];
+                    index++;
                 }
             }
+            Array.Copy(gridBuffer, grid, grid.Length);
         }
 
-        //We use this function to move the tiles RIGHT
-        static void MoveRight(int[,] table)
-        {
-            int size = table.GetLength(0);
-
-            for (int x = 0; x < size; x++)
-            {
-                for (int y = size - 2; y >= 0; y--)
-                {
-                    if (table[x, y] != 0)
-                    {
-                        int col = y;
-
-                        //We move the tiles to the right
-                        while (col < size - 1 && table[x, col + 1] == 0)
-                        {
-                            table[x, col + 1] = table[x, col];
-                            table[x, col] = 0;
-                            col++;
-                        }
-                    }
-                }
-            }
-        }
-
-        //We use this function to move the tiles LEFT
+        //we use this function to move to the LEFT
         static void MoveLeft(int[,] table)
         {
-            int size = table.GetLength(0);
-
-            for (int x = 0; x < size; x++)
+            for (int x = 0; x < grid.GetLength(0); x++)
             {
-                for (int y = 1; y < size; y++)
-                {
-                    if (table[x, y] != 0)
-                    {
-                        int col = y;
+                int[] line = changeOrder(table[x, 0], table[x, 1], table[x, 2], table[x, 3]);
 
-                        //We move the tiles to the left
-                        while (col > 0 && table[x, col - 1] == 0)
-                        {
-                            table[x, col - 1] = table[x, col];
-                            table[x, col] = 0;
-                            col--;
-                        }
-                    }
+                for(int i = 0; i < line.Length; i++)
+                {
+                    gridBuffer[x, i] = line[i];
                 }
             }
+            Array.Copy(gridBuffer, grid, grid.Length);
+        }
+
+        //We use this function to move to the RIGHT
+        static void MoveRight(int[,] table)
+        {
+            for (int x = 0;  x < grid.GetLength(0); x++)
+            {
+                int[] line = changeOrder(table[x, 3], table[x, 2], table[x, 1], table[x, 0]);
+                int index = 0;
+
+                for(int i = line.Length - 1; i >= 0; i--)
+                {
+                    gridBuffer[x, i] = line[index];
+                    index++;
+                }
+            }
+            Array.Copy(gridBuffer, grid, grid.Length);
         }
     }
+
 }
