@@ -4,6 +4,7 @@ using System.Data;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.ExceptionServices;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Text;
 using System.Threading.Tasks;
 using System.Xml.Schema;
@@ -29,6 +30,7 @@ namespace Game_2048
             {
                 GenerateNumber(grid);
             }
+            PrintTable();
 
             bool reference = true;
 
@@ -64,8 +66,20 @@ namespace Game_2048
                         Console.WriteLine("Veuillez appuyer sur un touche valide");
                         break;
                 }
+
                 GenerateNumber(grid);
-                
+                PrintTable();
+
+                if (weDidIt(grid))
+                {
+                    Console.WriteLine("Vous avez gagné! \nVous pouvez continuer de jouer si vous le souhaitez ou quitter le programme avec c.");
+                }
+
+                if (!canMove(grid))
+                {
+                    Console.WriteLine("Raté! Réessayez la prcochine fois :)");
+                    reference = false;
+                }
             }
             Console.ReadKey();
         }
@@ -74,20 +88,25 @@ namespace Game_2048
         static void PrintTable()
         {
             Console.Clear();
+
             //Affiche le nom du jeu
             Console.WriteLine("####### 2048 GAME #######\n");
 
-            for (int i = 0; i < row; i++)
+            for (int i = 0; i < grid.GetLength(0); i++)
             {
-                for (int j = 0; j < col; j++)
+                for (int j = 0; j < grid.GetLength(1); j++)
                 {
-                    Console.Write(grid[i, j] + "\t ");
+                    Colors(grid[i, j]);
+                    Console.Write(grid[i, j] + "\t");
+                    Console.ResetColor();
                 }
-
-                Console.WriteLine();
-                Console.WriteLine();
+                
+                for (int z = 0; z < 2; z++)
+                {
+                    Console.WriteLine();
+                }
             }
-            Console.WriteLine("score: {0}", score);
+            Console.WriteLine("score: {0}\n", score);
         }
 
         //We use this function to generate a random number and put it in the grid
@@ -116,7 +135,6 @@ namespace Game_2048
                 int newValue = (random.Next(10) == 0) ? 4 : 2;
                 table[randomEmptyTile.Item1, randomEmptyTile.Item2] = newValue;
             }
-            PrintTable();
         }
 
         //We use this function to change the order in a linear array of 4 (one line of the game)
@@ -236,6 +254,102 @@ namespace Game_2048
                 }
             }
             Array.Copy(gridBuffer, grid, grid.Length);
+        }
+
+        //We use this function to give colors to the array's cases depending on their value
+        static void Colors(int value)
+        {   
+            switch(value)
+            {
+                case 0:
+                    Console.ForegroundColor = ConsoleColor.DarkGray;
+                    return;
+                
+                case 2:
+                    Console.ForegroundColor = ConsoleColor.DarkBlue;
+                    break;
+                
+                case 4:
+                    Console.ForegroundColor = ConsoleColor.Blue;
+                    break;
+                
+                case 8:
+                    Console.ForegroundColor = ConsoleColor.DarkCyan;
+                    break;
+                
+                case 16:
+                    Console.ForegroundColor = ConsoleColor.Cyan;
+                    break;
+                
+                case 32:
+                    Console.ForegroundColor = ConsoleColor.DarkGreen;
+                    break;
+                case 64:
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    break;
+                
+                case 128:
+                    Console.ForegroundColor = ConsoleColor.DarkYellow;
+                    break;
+                
+                case 256:
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    break;
+                
+                case 512:
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    break;
+                
+                case 1024:
+                    Console.ForegroundColor = ConsoleColor.DarkRed;
+                    break;
+                
+                case 2048:
+                    Console.ForegroundColor = ConsoleColor.Magenta;
+                    break;
+            }
+        }
+
+        //We use this function to check if the player won by creating a 2048 tile
+        static bool weDidIt(int[,] table)
+        {
+            for(int i = 0; i < table.GetLength(0); i++)
+            {
+                for(int j = 0; j < table.GetLength(1); j++)
+                {
+                    if (table[i, j] >= 2048)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        //we use this function to check if the player can still move. If he can't, then he looses
+        static bool canMove(int[,] table)
+        {
+            for(int row = 0; row < table.GetLength(0); row++)
+            {
+                for(int col = 0; col < table.GetLength(1); col++)
+                {
+                    if (table[row, col] == 0)
+                    {
+                        return true;
+                    }
+                    
+                    if (row < table.GetLength(0) - 1 && table[row, col] == table[row + 1, col])
+                    {
+                        return true;
+                    }
+
+                    if(col < table.GetLength(0) - 1 && table[row, col] == table[row, col + 1])
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
         }
     }
 
