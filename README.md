@@ -3,7 +3,7 @@ A 2048 game app with C#
 
 # Base logic of the game:
 
-- In the beginning, we place 2 number 2 randomly on the grid.
+- In the beginning, we place 2 numbers (90% of 2 and 10% of 4) randomly on the grid.
 - Everytime we move, the numbers slide in the direction of our movement. If two of the same numbers collide after a move, they merge by and add themselves.
 - After every move, a new number spawns on the grid (it has 90% chances of being a 2 and 10% chances of being a 4).
 - When the user gets to 2048, he iwins the game.
