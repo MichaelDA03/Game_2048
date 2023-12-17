@@ -28,9 +28,9 @@ namespace Game_2048
             //First, we generate two numbers in the table and we print it
             for(int i = 0; i < 2; i++)
             {
-                GenerateNumber(grid);
+                generateNumber(grid);
             }
-            PrintTable();
+            printTable();
 
             bool reference = true;
 
@@ -42,20 +42,64 @@ namespace Game_2048
                 //We use a switch to detect which key the user pressed and move the tiles accordingly
                 switch (key)
                 {
+                    //If we move UP
                     case ConsoleKey.UpArrow:
-                        MoveUp(grid);
+                        for (int y = 0; y < grid.GetLength(0); y++)
+                        {
+                            int[] column = changeOrder(grid[0, y], grid[1, y], grid[2, y], grid[3, y]);
+
+                            for (int i = 0; i < column.Length; i++)
+                            {
+                                gridBuffer[i, y] = column[i];
+                            }
+                        }
+                        Array.Copy(gridBuffer, grid, grid.Length);
                         break;
 
+                    //If we move DOWN
                     case ConsoleKey.DownArrow:
-                        MoveDown(grid);
+                        for (int y = 0; y < grid.GetLength(0); y++)
+                        {
+                            int[] column = changeOrder(grid[3, y], grid[2, y], grid[1, y], grid[0, y]);
+                            int index = 0;
+
+                            for (int i = column.Length - 1; i >= 0; i--)
+                            {
+                                gridBuffer[i, y] = column[index];
+                                index++;
+                            }
+                        }
+                        Array.Copy(gridBuffer, grid, grid.Length);
                         break;
 
+                    //If we move to the LEFT
                     case ConsoleKey.LeftArrow:
-                        MoveLeft(grid);
+                        for (int x = 0; x < grid.GetLength(0); x++)
+                        {
+                            int[] line = changeOrder(grid[x, 0], grid[x, 1], grid[x, 2], grid[x, 3]);
+
+                            for (int i = 0; i < line.Length; i++)
+                            {
+                                gridBuffer[x, i] = line[i];
+                            }
+                        }
+                        Array.Copy(gridBuffer, grid, grid.Length);
                         break;
 
+                    //If we move to the RIGHT
                     case ConsoleKey.RightArrow:
-                        MoveRight(grid);
+                        for (int x = 0; x < grid.GetLength(0); x++)
+                        {
+                            int[] line = changeOrder(grid[x, 3], grid[x, 2], grid[x, 1], grid[x, 0]);
+                            int index = 0;
+
+                            for (int i = line.Length - 1; i >= 0; i--)
+                            {
+                                gridBuffer[x, i] = line[index];
+                                index++;
+                            }
+                        }
+                        Array.Copy(gridBuffer, grid, grid.Length);
                         break;
 
                     case ConsoleKey.C:
@@ -67,8 +111,8 @@ namespace Game_2048
                         break;
                 }
 
-                GenerateNumber(grid);
-                PrintTable();
+                generateNumber(grid);
+                printTable();
 
                 if (weDidIt(grid))
                 {
@@ -85,7 +129,7 @@ namespace Game_2048
         }
 
         //We use this function to print the table
-        static void PrintTable()
+        static void printTable()
         {
             Console.Clear();
 
@@ -96,7 +140,7 @@ namespace Game_2048
             {
                 for (int j = 0; j < grid.GetLength(1); j++)
                 {
-                    Colors(grid[i, j]);
+                    colors(grid[i, j]);
                     Console.Write(grid[i, j] + "\t");
                     Console.ResetColor();
                 }
@@ -110,7 +154,7 @@ namespace Game_2048
         }
 
         //We use this function to generate a random number and put it in the grid
-        static void GenerateNumber(int[,] table)
+        static void generateNumber(int[,] table)
         {
             int size = table.GetLength(0);
 
@@ -192,72 +236,8 @@ namespace Game_2048
             return ordre;
         }
 
-        //We use this function to move UP
-        static void MoveUp(int[,] table)
-        {
-            for(int y = 0; y < grid.GetLength(0); y++)
-            {
-                int[] column = changeOrder(table[0, y], table[1, y], table[2, y], table[3, y]);
-
-                for(int i = 0; i < column.Length; i++)
-                {
-                    gridBuffer[i, y] = column[i];
-                }
-            }
-            Array.Copy(gridBuffer, grid, grid.Length);
-        }
-
-        //we use this function to move DOWN
-        static void MoveDown(int[,] table)
-        {
-            for(int y = 0; y < grid.GetLength(0); y++)
-            {
-                int[] column = changeOrder(table[3, y], table[2, y], table[1, y], table[0, y]);
-                int index = 0;
-
-                for (int i = column.Length - 1 ; i >= 0; i--)
-                {
-                    gridBuffer[i, y] = column[index];
-                    index++;
-                }
-            }
-            Array.Copy(gridBuffer, grid, grid.Length);
-        }
-
-        //we use this function to move to the LEFT
-        static void MoveLeft(int[,] table)
-        {
-            for (int x = 0; x < grid.GetLength(0); x++)
-            {
-                int[] line = changeOrder(table[x, 0], table[x, 1], table[x, 2], table[x, 3]);
-
-                for(int i = 0; i < line.Length; i++)
-                {
-                    gridBuffer[x, i] = line[i];
-                }
-            }
-            Array.Copy(gridBuffer, grid, grid.Length);
-        }
-
-        //We use this function to move to the RIGHT
-        static void MoveRight(int[,] table)
-        {
-            for (int x = 0;  x < grid.GetLength(0); x++)
-            {
-                int[] line = changeOrder(table[x, 3], table[x, 2], table[x, 1], table[x, 0]);
-                int index = 0;
-
-                for(int i = line.Length - 1; i >= 0; i--)
-                {
-                    gridBuffer[x, i] = line[index];
-                    index++;
-                }
-            }
-            Array.Copy(gridBuffer, grid, grid.Length);
-        }
-
         //We use this function to give colors to the array's cases depending on their value
-        static void Colors(int value)
+        static void colors(int value)
         {   
             switch(value)
             {
