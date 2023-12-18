@@ -28,9 +28,9 @@ namespace Game_2048
             //First, we generate two numbers in the table and we print it
             for(int i = 0; i < 2; i++)
             {
-                generateNumber(grid);
+                GenerateNumber();
             }
-            printTable();
+            PrintTable();
 
             bool reference = true;
 
@@ -46,7 +46,7 @@ namespace Game_2048
                     case ConsoleKey.UpArrow:
                         for (int y = 0; y < grid.GetLength(0); y++)
                         {
-                            int[] column = changeOrder(grid[0, y], grid[1, y], grid[2, y], grid[3, y]);
+                            int[] column = ChangeOrder(grid[0, y], grid[1, y], grid[2, y], grid[3, y]);
 
                             for (int i = 0; i < column.Length; i++)
                             {
@@ -60,7 +60,7 @@ namespace Game_2048
                     case ConsoleKey.DownArrow:
                         for (int y = 0; y < grid.GetLength(0); y++)
                         {
-                            int[] column = changeOrder(grid[3, y], grid[2, y], grid[1, y], grid[0, y]);
+                            int[] column = ChangeOrder(grid[3, y], grid[2, y], grid[1, y], grid[0, y]);
                             int index = 0;
 
                             for (int i = column.Length - 1; i >= 0; i--)
@@ -76,7 +76,7 @@ namespace Game_2048
                     case ConsoleKey.LeftArrow:
                         for (int x = 0; x < grid.GetLength(0); x++)
                         {
-                            int[] line = changeOrder(grid[x, 0], grid[x, 1], grid[x, 2], grid[x, 3]);
+                            int[] line = ChangeOrder(grid[x, 0], grid[x, 1], grid[x, 2], grid[x, 3]);
 
                             for (int i = 0; i < line.Length; i++)
                             {
@@ -90,7 +90,7 @@ namespace Game_2048
                     case ConsoleKey.RightArrow:
                         for (int x = 0; x < grid.GetLength(0); x++)
                         {
-                            int[] line = changeOrder(grid[x, 3], grid[x, 2], grid[x, 1], grid[x, 0]);
+                            int[] line = ChangeOrder(grid[x, 3], grid[x, 2], grid[x, 1], grid[x, 0]);
                             int index = 0;
 
                             for (int i = line.Length - 1; i >= 0; i--)
@@ -111,15 +111,15 @@ namespace Game_2048
                         break;
                 }
 
-                generateNumber(grid);
-                printTable();
+                GenerateNumber();
+                PrintTable();
 
-                if (weDidIt(grid))
+                if (WeDidIt(grid))
                 {
                     Console.WriteLine("Vous avez gagné! \nVous pouvez continuer de jouer si vous le souhaitez ou quitter le programme avec c.");
                 }
 
-                if (!canMove(grid))
+                if (!CanMove(grid))
                 {
                     Console.WriteLine("Raté! Réessayez la prcochine fois :)");
                     reference = false;
@@ -129,7 +129,7 @@ namespace Game_2048
         }
 
         //We use this function to print the table
-        static void printTable()
+        static void PrintTable()
         {
             Console.Clear();
 
@@ -140,7 +140,7 @@ namespace Game_2048
             {
                 for (int j = 0; j < grid.GetLength(1); j++)
                 {
-                    colors(grid[i, j]);
+                    Colors(grid[i, j]);
                     Console.Write(grid[i, j] + "\t");
                     Console.ResetColor();
                 }
@@ -154,9 +154,9 @@ namespace Game_2048
         }
 
         //We use this function to generate a random number and put it in the grid
-        static void generateNumber(int[,] table)
+        static void GenerateNumber()
         {
-            int size = table.GetLength(0);
+            int size = grid.GetLength(0);
 
             //We first get the coordinates of the enmpty tiles in the table
             List<Tuple<int, int>> emptyTiles = new List<Tuple<int, int>>();
@@ -164,7 +164,7 @@ namespace Game_2048
             {
                 for (int y = 0; y < size; y++)
                 {
-                    if (table[x, y] == 0)
+                    if (grid[x, y] == 0)
                     {
                         emptyTiles.Add(Tuple.Create(x, y));
                     }
@@ -177,13 +177,13 @@ namespace Game_2048
                 int randomIndex = random.Next(emptyTiles.Count);
                 Tuple<int, int> randomEmptyTile = emptyTiles[randomIndex];
                 int newValue = (random.Next(10) == 0) ? 4 : 2;
-                table[randomEmptyTile.Item1, randomEmptyTile.Item2] = newValue;
+                grid[randomEmptyTile.Item1, randomEmptyTile.Item2] = newValue;
             }
         }
 
         //We use this function to change the order in a linear array of 4 (one line of the game)
         //This function also merges the tiles after having moved them
-        static int[] changeOrder(int nb0, int nb1, int nb2, int nb3)
+        static int[] ChangeOrder(int nb0, int nb1, int nb2, int nb3)
         {
             //This is to move the tiles
             if(nb2 == 0 && nb3 > 0)
@@ -237,7 +237,7 @@ namespace Game_2048
         }
 
         //We use this function to give colors to the array's cases depending on their value
-        static void colors(int value)
+        static void Colors(int value)
         {   
             switch(value)
             {
@@ -291,23 +291,20 @@ namespace Game_2048
         }
 
         //We use this function to check if the player won by creating a 2048 tile
-        static bool weDidIt(int[,] table)
+        static bool WeDidIt(int[,] table)
         {
-            for(int i = 0; i < table.GetLength(0); i++)
+            foreach(int var in grid)
             {
-                for(int j = 0; j < table.GetLength(1); j++)
+                if (var >= 2048)
                 {
-                    if (table[i, j] >= 2048)
-                    {
-                        return true;
-                    }
+                    return true;
                 }
             }
             return false;
         }
 
         //we use this function to check if the player can still move. If he can't, then he looses
-        static bool canMove(int[,] table)
+        static bool CanMove(int[,] table)
         {
             for(int row = 0; row < table.GetLength(0); row++)
             {
